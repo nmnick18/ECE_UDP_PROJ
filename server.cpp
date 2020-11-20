@@ -82,7 +82,7 @@ int main (int argc, char**argv){
 	char filename[256];
     unsigned int l=sizeof(struct sockaddr_in);
 	
-    // Variable pour la date
+    // date variable
 	time_t intps;
 	struct tm* tmi;
     
@@ -120,7 +120,7 @@ int main (int argc, char**argv){
         n=recvfrom(sfd,&buf,BUFFER,0,(struct sockaddr *)&clt,&l);
 	}
     
-	printf("Nombre d'octets transférés : %lld \n",count);
+	printf("Number of bytes transferred: %lld \n",count);
     
     close(sfd);
     close(fd);
