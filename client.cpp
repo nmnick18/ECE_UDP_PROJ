@@ -53,7 +53,7 @@ int create_client_socket (int port, char* ipaddr){
         perror("socket fail");
         return EXIT_FAILURE;
 	}
-    //preparation de l'adresse de la socket destination
+    //setting up destination socket address
 	l=sizeof(struct sockaddr_in);
 	bzero(&sock_serv,l);
 	sock_serv.sin_family=AF_INET;
