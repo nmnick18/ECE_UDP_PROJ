@@ -5,7 +5,7 @@ Project for 4122
 
 ### Install
 
-Run the following commands
+Run the following command
 
 ```
 make
@@ -14,8 +14,8 @@ make
 Once this is ran, use the following command
 
 ```
-./client.out 127.0.0.1 4545 <File location>
-./server.out 4545
+./server 4545
+./client 127.0.0.1 4545 <File location>
 ```
 ## Task
 
