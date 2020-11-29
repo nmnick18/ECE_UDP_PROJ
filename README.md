@@ -19,8 +19,8 @@ Once this is ran, use the following command
 ```
 ## Task
 
-[x] Get client connected to server
-[x] Get Server working
-[] get images to transfer correctly
-[] work on CLI component
-[] Documentation
+-[x] Get client connected to server
+-[x] Get Server working
+-[x] get images to transfer correctly
+-[] work on CLI component
+-[x] Documentation

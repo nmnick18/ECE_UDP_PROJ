@@ -1,6 +1,6 @@
 # ECE 4122
 # FTP
 
-make: client server
-	g++ client.cpp -o client
-	g++ server.cpp -o server
+make:
+	g++ -std=c++11 client.cpp -o client.out
+	g++ -std=c++11 server.cpp -o server.out
