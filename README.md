@@ -21,6 +21,6 @@ Once this is ran, use the following command
 
 [x] Get client connected to server
 [x] Get Server working
-[] get images to transfer correctly
+[x] get images to transfer correctly
 [] work on CLI component
 [] Documentation

@@ -35,7 +35,7 @@
 
 #include <unistd.h>
 
-#include <strings.h>
+#include <cstring>
 
 #include <iostream>
 
@@ -80,13 +80,12 @@ string getFileName(const string& s)
    char sep = '/';
 
 	#ifdef _WIN32
-	sep = '\\';
+		sep = '\\';
 	#endif
 
    size_t i = s.rfind(sep, s.length());
-   if (i != string::npos) {
+   if (i != string::npos)
       return(s.substr(i+1, s.length() - i));
-   }
 
    return("");
 
@@ -104,15 +103,16 @@ int UDPSocket (int port, char* ipaddr)
 	sockt = socket(AF_INET,SOCK_DGRAM,0);
 	if (sockt < 0)
 	{
-        std::cout<<"socket fail"<<std::endl;
+        std::cout << "socket fail" << std::endl;
         return EXIT_FAILURE;
 	}
     //setting up destination socket address
-	l=sizeof(struct sockaddr_in);
-	bzero(&sock_serv,l);
-	sock_serv.sin_family=AF_INET;
-	sock_serv.sin_port=htons(port);
-    if (inet_pton(AF_INET,ipaddr,&sock_serv.sin_addr)==0){
+	l = sizeof(struct sockaddr_in);
+	bzero(&sock_serv, l);
+	sock_serv.sin_family = AF_INET;
+	sock_serv.sin_port = htons(port);
+    if (inet_pton(AF_INET, ipaddr, &sock_serv.sin_addr) == 0)
+	{
 		std::cout << "Invalid IP adress" << std::endl;
 			return EXIT_FAILURE;
 	}
@@ -130,11 +130,12 @@ int main (int argc, char**argv)
     char buf[BUFFER];
     long count=0, m,sz;
 	long int n;
-    int l=sizeof(struct sockaddr_in);
+    int l = sizeof(struct sockaddr_in);
 	struct stat buffer;
     
-	if (argc != 4){
-		std::cout <<"Error usage : " << argv[0] << " <ip_server> <port_server> <file directory>" << std::endl;
+	if (argc != 4)
+	{
+		std::cout << "Error usage : " << argv[0] << " <ip_server> <port_server> <file directory>" << std::endl;
 		return EXIT_FAILURE;
 	}
     
@@ -144,40 +145,47 @@ int main (int argc, char**argv)
    std::string path = argv[3];
 	//std::cout << "file path: " << filepath << std::endl;
 
-	if ((fd = open(argv[3],O_RDONLY))==-1){
+	if ((fd = open(argv[3],O_RDONLY)) == -1)
+	{
 		std::cout<<"open fail"<<std::endl;
 		return EXIT_FAILURE;
 	}
     
-	if (stat(argv[3],&buffer)==-1){
-		std::cout<< "stat fail"<<std::endl;
+	if (stat(argv[3],&buffer) == -1)
+	{
+		std::cout << "stat fail" << std::endl;
 		return EXIT_FAILURE;
 	}
 	else
-		sz=buffer.st_size;
-    
-	bzero(&buf,BUFFER);
+		sz = buffer.st_size;
+	
+	// send file name to server
+	strcpy(buf, getFileName(path).c_str());
+	m = sendto(sockt, buf, 256, 0, (struct sockaddr*)&sock_serv, l);
+	
+	bzero(&buf,BUFFER);	// clear buffer
     
 	gettimeofday(&start,NULL);
+
     n=read(fd,buf,BUFFER);
 	while(n){
 		if(n < 0){
 			std::cout<<"read fails"<<std::endl; 
 			return EXIT_FAILURE;
 		}
-		m=sendto(sockt,buf,n,0,(struct sockaddr*)&sock_serv,l);
+		m = sendto(sockt, buf, n, 0, (struct sockaddr*)&sock_serv, l);
 		if(m < 0){
-			std::cout<<"send error"<<std::endl;
+			std::cout << "send error" << std::endl;
 			return EXIT_FAILURE;
 		}
-		count+=m;
+		count += m;
 		bzero(buf,BUFFER);
-        n=read(fd,buf,BUFFER);
+        n = read(fd,buf,BUFFER);
 	}
 
-	m=sendto(sockt,buf,0,0,(struct sockaddr*)&sock_serv,l);
+	m = sendto(sockt, buf, 0, 0, (struct sockaddr*)&sock_serv, l);
 	gettimeofday(&stop,NULL);
-	duration(&start,&stop,&delta);
+	duration(&start, &stop, &delta);
     
 	std::cout << "The file name is: " << getFileName(path) << std::endl;
 	std::cout << "Bytes transferred: " << count << std::endl;

@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <strings.h>
+#include <cstring>
 #include <string>
 #include <iostream>
 
@@ -47,7 +47,9 @@ int duration (struct timeval *start,struct timeval *stop,struct timeval *delta)
     suseconds_t time_start, time_end, time;
     
     time_start = (suseconds_t) (100000*(start->tv_sec))+ start->tv_usec;
+
     time_end = (suseconds_t) (100000*(stop->tv_sec))+ stop->tv_usec;
+
     time = time_end - time_start;
     
     delta->tv_usec = time%100000;
@@ -58,8 +60,8 @@ int duration (struct timeval *start,struct timeval *stop,struct timeval *delta)
     else
         return 0;
 
-		
-}//end duration function
+
+}//end function
 
 
 
@@ -75,11 +77,11 @@ int UDPSocket(int usPort)
 	int sockt;
 
 	//creating a socket sockt
-	sockt = socket(AF_INET,SOCK_DGRAM,0);
+	sockt = socket(AF_INET,SOCK_DGRAM, 0);
 
 	if (sockt < 0)
 	{
-        std::cout<<"ERROR opening socket"<<std::endl; 
+        std::cout << "ERROR opening socket" << std::endl; 
         return 1;
 	}
 
@@ -88,14 +90,14 @@ int UDPSocket(int usPort)
     //bzero(&sock_serv,sizeof(struct sockaddr_in));
 	
 	//zero out the server address variable
-    memset(&sock_serv,0, sizeof(struct sockaddr_in));
+    memset(&sock_serv, 0, sizeof(struct sockaddr_in));
 	
 	//initialize the server address
-	sock_serv.sin_family=AF_INET;
+	sock_serv.sin_family = AF_INET;
 	//convert portnumber from host to network
-	sock_serv.sin_port=htons(usPort);
+	sock_serv.sin_port = htons(usPort);
 
-	sock_serv.sin_addr.s_addr=htonl(INADDR_ANY);
+	sock_serv.sin_addr.s_addr = htonl(INADDR_ANY);
 
 
 	//bind the socket to the portnumber
@@ -129,7 +131,8 @@ int main (int argc, char** argv)
 	time_t intps;
 	struct tm* tmi;
     
-	if (argc != 2){
+	if (argc != 2)
+	{
 		std::cout << "Error usage : " << argv[0] << " " << "<port_serv>" << std::endl;
 		return 1;
 	}
@@ -139,33 +142,25 @@ int main (int argc, char** argv)
 	intps = time(NULL);
 	tmi = localtime(&intps);
 
-	bzero(filename,256);
+	bzero(filename, 256);	// clear filename
+	n=recvfrom(sockt, &filename, 256, 0, (struct sockaddr *)&clt, &l);	// receive filename
 
-   
-	
-
-   //std::cout << remove_extension(base_name(filepath)) << std::endl;
-   
-
-
-	sprintf(filename,"Transferred.%d.%d.%d",tmi->tm_hour,tmi->tm_min,tmi->tm_sec);
+	printf("Transferred.%d.%d.%d\n", tmi->tm_hour, tmi->tm_min, tmi->tm_sec);
 	std::cout << "Creating the output file : " << filename << std::endl;
 
-
-	//client 127.0.0.1 4545 ~/desktop/Transfer/hello.txt
-
-
 	//file opening
-	if((file=open(filename,O_CREAT|O_WRONLY|O_TRUNC,0600)) < 0){
+	if((file=open(filename,O_CREAT|O_WRONLY|O_TRUNC,0600)) < 0)
+	{
 		std::cout << "fail to open the file" << std::endl;
 		return 1;
 	}
     
-	//preparation of the shipment
+	// preparation of the shipment
 	bzero(&buf,BUFFER);
+	
+    n=recvfrom(sockt, &buf, BUFFER, 0, (struct sockaddr *)&clt, &l);	// receive first # of bytes
 
-    n=recvfrom(sockt,&buf,BUFFER,0,(struct sockaddr *)&clt,&l);
-
+	// receive remaining bytes
 	while(n)
 	{
 		std::cout << n << " of data received" << std::endl; 
