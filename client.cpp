@@ -20,12 +20,10 @@
 #include <unistd.h>
 #include <cstring>  // c_str()
 #include <iostream>
+#include "UDP_Socket.h"
 
 
-/* Size of the buffer used to send the file
- * in several blocks
- */
-#define BUF_SIZE 512
+
 
 struct sockaddr_in sock_serv;
 
@@ -50,6 +48,12 @@ string getFileName(const string& s)
 }//end function
 
 
+
+
+
+
+
+//---------------------------UDPSOCKET--------------------------------------------------
 /* Function allowing the creation of a socket
  * Returns a file descriptor
  */
@@ -59,6 +63,8 @@ int UDPSocket(int port, char* ipaddr)
 	int sockt;
     
 	sockt = socket(AF_INET,SOCK_DGRAM, 0);
+
+    // Zero out serv_addr variable
 	
 	if (sockt < 0)
     {
@@ -72,6 +78,7 @@ int UDPSocket(int port, char* ipaddr)
     sock_serv.sin_family = AF_INET;
     sock_serv.sin_port = htons(port);
 
+
     if (inet_pton(AF_INET, ipaddr, &sock_serv.sin_addr) == 0)
     {
         std::cout << "Invalid IP adress" << std::endl;
@@ -81,11 +88,17 @@ int UDPSocket(int port, char* ipaddr)
     return sockt;
 }//end function
 
+//----------------------------------------------------------------------------------
+
+
+
 
 
 int main(int argc, char**argv)
 {
+    udpPacket packet; 
     int sockt,fd;
+    int seqCount = 0;
     char buf[BUF_SIZE];
     long count = 0, m, sz;
     long int n;
@@ -98,8 +111,8 @@ int main(int argc, char**argv)
         return EXIT_FAILURE;
     }
     
-    sockt=UDPSocket(atoi(argv[2]), argv[1]);
-    
+    //sockt=UDPSocket(atoi(argv[2]), argv[1]);
+    UDP_Socket socket(atoi(argv[2]), argv[1]);
     std::string path = argv[3];
 
     if ((fd = open(argv[3],O_RDONLY)) == -1)
@@ -117,14 +130,18 @@ int main(int argc, char**argv)
         sz = buffer.st_size;
 
     // send file name to server
-    m = sendto(sockt, getFileName(path).c_str(), 256, 0, (struct sockaddr*)&sock_serv, l);
+    m = sendto(socket->m_sockfd, getFileName(path).c_str(), 256, 0, (struct sockaddr*)&sock_serv, l);
 	
-    bzero(&buf,BUF_SIZE);   // clear buffer
+    bzero(&packet->buf,BUF_SIZE);   // clear buffer
 
-    n=read(fd,buf,BUF_SIZE);    // initial read of file
+    n=read(fd,packet->buf,BUF_SIZE);    // initial read of file
 	
+    
+    int seqCount = 0;
+
+    //---------------------------FILE TRANSFER--------------------------------------------
     // read and send bytes of file
-    while (n)
+    while (1)
     {
         if (n < 0)
         {
@@ -132,8 +149,9 @@ int main(int argc, char**argv)
             return EXIT_FAILURE;
         }
 		
-        m = sendto(sockt, buf, n, 0, (struct sockaddr*)&sock_serv, l);
-		
+        packet->lSeqNum = seqCount++;
+        //m = sendto(socket->m_sockfd, (char*)&packet, n, 0, (struct sockaddr*)&sock_serv, l);
+        m = sendto(socket->m_sockfd, (char*)&packet, sizeof(udpPacket), 0, (struct sockaddr*)&sock_serv, l);
         if (m < 0)
         {
             std::cout << "send error" << std::endl;
@@ -141,16 +159,18 @@ int main(int argc, char**argv)
         }
 		
         count += m;
-        bzero(buf, BUF_SIZE);
-        n = read(fd, buf, BUF_SIZE);
+        bzero(&packet->buf, BUF_SIZE);
+        n = read(fd, packet->buf, BUF_SIZE);
     }
 
-    m = sendto(sockt, buf, 0, 0, (struct sockaddr*)&sock_serv, l);  // send remaining bytes
+    //-------------------------------------------------------------------------------------
 
+    //m = sendto(socket->m_sockfd, (char*)&packet, 0, 0, (struct sockaddr*)&sock_serv, l);  // send remaining bytes
+    m = sendto(socket->m_sockfd, (char*)&packet, sizeof(udpPacket), 0, (struct sockaddr*)&sock_serv, l);  // send remaining bytes
     std::cout << "The file name is: " << getFileName(path) << std::endl;
     std::cout << "Bytes transferred: " << count << std::endl;
 
-    close(sockt);
-    close(fd);
+    socket.sockQuit();
+    socket.sockClose();
     return EXIT_SUCCESS;
 }

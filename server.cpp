@@ -9,18 +9,7 @@
 	Date: November 13, 2020
 */
 
-#include <stdio.h>  // input/output operations
-#include <stdlib.h> // RNG, memory management, sorting, converting
-#include <sys/socket.h> // for non-windows system
-#include <arpa/inet.h>  //Internet Protocol family
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>  // c_str()
-#include <string>
-#include <iostream>
+#include "UDP_Socket.h"
 
 /* Size of the buffer used to send the file
  * in several blocks
@@ -73,10 +62,41 @@ int UDPSocket(int usPort)
 
 
 
+void UDP_Socket::processPacket(const udpPacket& inPkt)
+{
+    if(inPkt.size() == 0)
+    {
+        inPkt.push_front(packet);   
+    }
+    else
+    {
+        for (auto& pck : m_packetlst)
+        {
+            if (pck.lSeqNum > inPkt.lSeqNum)
+            {
+                std::advance(it, i);
+                m_packetlst.insert(it, packet);
+                break;
+            }
+            i++;
+            if (i >= m_packetlst.size())
+            {
+                m_packetlst.push_back(packet);
+                break;
+            }
+        }
+    }
+
+}
+
+
+
 int main (int argc, char** argv)
 {
     int file; 
     int sockt;
+    udpPacket packet;
+
     char buf[BUF_SIZE];
     off_t count = 0, n; // long type
     char filename[256];
@@ -105,8 +125,10 @@ int main (int argc, char** argv)
     // preparation of the shipment
     bzero(&buf, BUF_SIZE);
 	
-    n = recvfrom(sockt, &buf, BUF_SIZE, 0, (struct sockaddr *)&clt, &l);	// receive first # of bytes
-
+    //n = recvfrom(sockt, &packet->buf, BUF_SIZE, 0, (struct sockaddr *)&clt, &l);	// receive first # of bytes
+    n = recvfrom(sockt, (char*)&packet, BUF_SIZE, 0, (struct sockaddr*)&clt, &l);	// receive first # of bytes
+    processPacket(packet);
+    
     // receive remaining bytes
     while(n)
     {
