@@ -2,5 +2,6 @@
 # FTP
 
 make:
-	g++ client.cpp -o client.out
-	g++ server.cpp -o server.out
+	g++ ECE_UDPSocket.cpp main.cpp -lpthread -o UDP_FTP.out
+	xterm
+	xterm 
