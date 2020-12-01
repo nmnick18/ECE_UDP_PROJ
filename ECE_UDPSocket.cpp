@@ -7,6 +7,9 @@ Source file for ECE_UDPSocket class.
 */
 #include "ECE_UDPSocket.h"
 
+static int file;
+static char filename[256];
+
 string getFileName(const string& s) 
 {
     char sep = '/';
@@ -109,14 +112,58 @@ ECE_UDPSocket::~ECE_UDPSocket()
 **/
 void ECE_UDPSocket::processMessage(const udpMessage& inMsg)
 {
+    int i = 0;
+    udpMessage tmpMsg;
+    std::list<udpMessage>::iterator it;
+    std::ofstream outFile;
     // Determine what to do with the message
 	switch (inMsg.nType)
 	{
         case 0: // Indicates filename
+            std::cout << "Received filename : " << inMsg.chMsg << std::endl;
+            strcpy(filename, inMsg.chMsg);
             break;
         case 1: // Indicates file data
+            std::cout << "Receiving data" << std::endl;
+            m_mutex.lock(); // lock socket mutex
+                it = m_lstMsgs.begin();
+                // Check if list is empty. If so, insert at front
+                if (m_lstMsgs.empty())
+                    m_lstMsgs.push_back(inMsg);
+                else
+                {
+                    for (auto& msg : m_lstMsgs)
+                    {
+                        if (msg.lSeqNum > inMsg.lSeqNum)
+                        {
+                            std::advance(it, i);
+                            m_lstMsgs.insert(it, inMsg);
+                            break;
+                        }
+                        i++;
+                        if (i >= m_lstMsgs.size())
+                        {
+                            m_lstMsgs.push_back(inMsg);
+                            break;
+                        }
+                    }
+                }
+                m_mutex.unlock();
             break;
         case 2: // Indicates EOF data
+            std::cout << "Receiving EOF data" << std::endl;
+            outFile.open(filename); // open file
+            m_mutex.lock();
+                // Iterate through list and write data to file
+                it = m_lstMsgs.begin();
+                for (auto& msg : m_lstMsgs)
+                {
+                    outFile << msg.chMsg;
+                }
+                outFile << inMsg.chMsg; // write last message received
+                std::cout << "Finished writing" << std::endl;
+            m_mutex.unlock();
+            outFile.close();
             break;
 	}
 }
@@ -168,17 +215,6 @@ bool ECE_UDPSocket::getNextMessage(udpMessage& msg)
 	m_mutex.unlock();	// unlock socket mutex
 	return false;	// return false if there are no more messages
 };
-
-/**
- * Clears the current composite message contained in m_lstMsgs.
-**/
-void ECE_UDPSocket::clearCompositeMsg()
-{
-    m_mutex.lock();
-    m_lstMsgs.clear();
-    m_mutex.unlock();
-
-}
 
 /**
  * Sends a udpMessage to the specified port.
@@ -270,6 +306,7 @@ void ECE_UDPSocket::sendFile(const std::string& strTo, unsigned short usPortNum,
     sendMessage(strTo, usPortNum, outMsg);   // send remaining bytes
     
     std::cout << getFileName(path) << " was transferred to " << strTo << std::endl;
+    std::cout << close(fd) << std::endl;
 
 };
 

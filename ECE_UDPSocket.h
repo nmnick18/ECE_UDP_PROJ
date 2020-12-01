@@ -11,6 +11,7 @@ Header file for ECE_UDPSocket class.
 #include <thread>
 #include <iterator>
 #include <iostream>
+#include <fstream>
 #include <list>
 #include <cstring>
 #include <string>
@@ -101,10 +102,6 @@ public:
 	*/
     void sendFile(const std::string& strTo, unsigned short usPortNum, const std::string& path);
     
-	/**
-	 * Clears the current composite message contained in m_lstMsgs.
-	**/
-    void clearCompositeMsg();
 	
     // Other stuff
 	
@@ -135,7 +132,7 @@ public:
     void error(const char* msg);
 
 	// Socket file descriptor
-    SOCKET m_sockfd;
+    int m_sockfd;
 private:
 
 	// Port number socket is binded to
