@@ -19,6 +19,7 @@ Header file for ECE_UDPSocket class.
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #ifdef _WIN32
     /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */

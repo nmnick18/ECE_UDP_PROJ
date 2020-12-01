@@ -6,9 +6,28 @@ Description:
 Source file for ECE_UDPSocket class.
 */
 #include "ECE_UDPSocket.h"
+#include <iostream>
 
 static int file;
 static char filename[256];
+double perc = 0;
+
+
+void DrawProgressBar(int len, double percent) {
+    std::cout << "\x1B[2K"; // Erase the entire current line.
+    std::cout << "\x1B[0E"; // Move to the beginning of the current line.
+    string progress;
+    for (int i = 0; i < len; ++i) {
+        if (i < static_cast<int>(len * percent)) {
+            progress += "=";
+        }
+        else {
+            progress += " ";
+        }
+    }
+    std::cout << "[" << progress << "] " << (static_cast<int>(100 * percent)) << "%";
+    std::flush(std::cout); // Required.
+}
 
 string getFileName(const string& s) 
 {
@@ -124,7 +143,7 @@ void ECE_UDPSocket::processMessage(const udpMessage& inMsg)
             strcpy(filename, inMsg.chMsg);
             break;
         case 1: // Indicates file data
-            std::cout << "Receiving data" << std::endl;
+            //std::cout << "Receiving data" << std::endl;
             m_mutex.lock(); // lock socket mutex
                 it = m_lstMsgs.begin();
                 // Check if list is empty. If so, insert at front
@@ -152,6 +171,13 @@ void ECE_UDPSocket::processMessage(const udpMessage& inMsg)
             break;
         case 2: // Indicates EOF data
             std::cout << "Receiving EOF data" << std::endl;
+            for (int i = 0; i < 100; i++) {
+                perc += 0.01;
+                DrawProgressBar(50, perc);
+                unsigned int microsecond = 1000000;
+                usleep(0.01 * microsecond);//sleeps for 3 second
+            }
+            std::cout<<std::endl;
             outFile.open(filename); // open file
             m_mutex.lock();
                 // Iterate through list and write data to file
