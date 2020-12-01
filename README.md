@@ -1,5 +1,9 @@
 # ECE_UDP_PROJ
-Project for 4122
+In this project, we're advancing our knowlege in the field of socket programming. Initially we wanted to down the route of using TCP, but we realized that it was not very easy to use.
+
+We decided to use our old lab 5 to get this working.
+
+The objective of this project was to use UDP to send files, we learned that in order to do this, we must know more about sending a buffer of a packet. We would need to send multiple packets in order for the other side to receive those packets.
 
 ## UDP project 
 
@@ -10,6 +14,9 @@ Nikhil Malani(client)
 Raj Chaudhari(server)
 Segev Apter(server)
 Jeffrey Murray(CLI)
+
+<------------------------------------------------------------------>
+below is the instruction on how to use our project
 
 ### Install
 
@@ -35,9 +42,8 @@ command: put <file-path>
 ```
 ## Task
 
-- [x] Get client connected to server
 - [x] Get Server working
-- [x] get images to transfer correctly
+- [x] Get client connected to server
 - [x] work on CLI component
 - [x] Documentation
 - [x] Work statement

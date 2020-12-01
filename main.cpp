@@ -99,10 +99,15 @@ void doClientInteractions(ECE_UDPSocket& activeSocket, string ipAddress, unsigne
             terminateApplication(activeSocket);
 			bStop = true;
         }
-		else if (strings.size() > 1 && strings[0] == "put")
+		else if (strings.size() > 1 && strings[0] == "push")
 		{
             //may need to fix
 			activeSocket.sendFile(ipAddress, portNum, strings[1]);
+		}
+        else if (strings.size() > 1 && strings[0] == "get")
+		{
+            //may need to fix
+			activeSocket.recvFile(ipAddress, portNum, strings[1]);
 		}
 		else
 		{

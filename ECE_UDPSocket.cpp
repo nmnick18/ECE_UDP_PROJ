@@ -75,6 +75,28 @@ void receiveSocketMsgs(ECE_UDPSocket* pUDpSocket)
     } while (true);
 }
 
+void sendSocketMsgs(ECE_UDPSocket* pUDpSocket)
+{
+    // Loop that waits on incoming messages
+    udpMessage inMsg;
+
+    sockaddr_in from;
+    socklen_t fromlen{sizeof(struct sockaddr_in)};
+    int n;
+
+    do
+    {
+        n = sendto(pUDpSocket->m_sockfd, (char*)&inMsg, sizeof(udpMessage), 0, (struct sockaddr*)&from, fromlen);
+        if (n < 0)
+        {
+			pUDpSocket->error("ERROR writing from socket");
+            break;
+        }
+        pUDpSocket->processMessage(inMsg);
+        pUDpSocket->addSource(from);
+    } while (true);
+}
+
 /**
  * Class constructor
  *
@@ -243,7 +265,7 @@ bool ECE_UDPSocket::getNextMessage(udpMessage& msg)
 };
 
 /**
- * Sends a udpMessage to the specified port.
+ * Sends a udpfile to the specified port.
  *
  * @param strTo
  * @param usPortNum
@@ -282,7 +304,46 @@ void ECE_UDPSocket::sendMessage(const std::string& strTo, unsigned short usPortN
 };
 
 /**
- * Sends a udpMessages containing file data to the specified port.
+ * recv a udpfile to the specified port.
+ *
+ * @param strTo
+ * @param usPortNum
+ * @param msg
+*/
+void ECE_UDPSocket::recvMessage(const std::string& strTo, unsigned short usPortNum, const udpMessage& msg) 
+{
+    struct hostent* server;
+    struct sockaddr_in serv_addr;
+    socklen_t fromlen;
+    struct sockaddr_in from;
+
+    server = gethostbyname(strTo.c_str());
+
+    if (server == NULL)
+    {
+        fprintf(stderr, "ERROR, no such host\n");
+        exit(0);
+    }
+    // Zero out serv_addr variable
+    memset((char*)&serv_addr, 0, sizeof(serv_addr));
+
+    serv_addr.sin_family = AF_INET;
+
+    memmove((char*)&serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
+
+    serv_addr.sin_port = htons(usPortNum);
+
+    fromlen = sizeof(from);
+
+    int n = recvfrom(m_sockfd, (char*)&msg, sizeof(udpMessage), 0, (struct sockaddr*)&serv_addr, &fromlen);
+
+    if (n < 0)
+        error("ERROR writing to socket");
+
+};
+
+/**
+ * Sends a udpfile containing file data to the specified port.
  *
  * @param strTo
  * @param usPortNum
@@ -330,6 +391,63 @@ void ECE_UDPSocket::sendFile(const std::string& strTo, unsigned short usPortNum,
     outMsg.lSeqNum = seqCount++;    // last sequence
     outMsg.nType = 2;   // EOF data is a udpMessage of nType 2
     sendMessage(strTo, usPortNum, outMsg);   // send remaining bytes
+    
+    std::cout << getFileName(path) << " was transferred to " << strTo << std::endl;
+    std::cout << close(fd) << std::endl;
+
+};
+
+
+/**
+ * receives a udpfile containing file data to the specified port.
+ *
+ * @param strTo
+ * @param usPortNum
+ * @param path
+*/
+
+void ECE_UDPSocket::recvFile(const std::string& strTo, unsigned short usPortNum, const std::string& path) 
+{
+    int l = sizeof(struct sockaddr_in), seqCount = 0, fd;
+    long sz;
+    long int n;
+    struct stat buffer;
+	udpMessage outMsg;
+
+    // open file
+	if ((fd = open(path.c_str(), O_RDONLY)) == -1)
+        error("open fail");
+    
+    if (stat(path.c_str(), &buffer) == -1)
+        error("stat fail");
+    else
+        sz = buffer.st_size;
+	
+    // send filename
+    outMsg.nType = 0;   // filename is a udpMessage of nType 0
+    strcpy(outMsg.chMsg, getFileName(path).c_str());
+    recvMessage(strTo, usPortNum, outMsg);
+    
+    memset(outMsg.chMsg, 0, sizeof(outMsg.chMsg));  // clear msg buffer
+    n = write(fd, outMsg.chMsg, BUF_SIZE);   // first BUF_SIZE bytes of file
+    outMsg.nType = 1;   // file data is a udpMessage of nType 1
+    
+    // read and send remaining bytes of file
+    while (n)
+    {
+        if (n < 0)
+            error("ERROR writing to socket");
+        
+        outMsg.lSeqNum = seqCount++;
+        recvMessage(strTo, usPortNum, outMsg);
+        
+        memset(outMsg.chMsg, 0, sizeof(outMsg.chMsg));  // clear msg buffer
+        n = write(fd, outMsg.chMsg, BUF_SIZE);
+    }
+    
+    outMsg.lSeqNum = seqCount++;    // last sequence
+    outMsg.nType = 2;   // EOF data is a udpMessage of nType 2
+    recvMessage(strTo, usPortNum, outMsg);   // send remaining bytes
     
     std::cout << getFileName(path) << " was transferred to " << strTo << std::endl;
     std::cout << close(fd) << std::endl;

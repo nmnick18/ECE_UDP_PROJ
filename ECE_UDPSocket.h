@@ -86,23 +86,23 @@ public:
     bool getNextMessage(udpMessage& msg);
 
 	/**
-	 * Sends a udpMessage to the specified port.
+	 * Sends and receive a udpFile to the specified port.
 	 *
 	 * @param strTo
 	 * @param usPortNum
 	 * @param msg
 	*/
     void sendMessage(const std::string& strTo, unsigned short usPortNum, const udpMessage& msg);
-	
+	void recvMessage(const std::string& strTo, unsigned short usPortNum, const udpMessage& msg);
     /**
-	 * Sends a udpMessages containing file data to the specified port.
+	 * Sends and receive a udpFile containing file data to the specified port.
 	 *
 	 * @param strTo
 	 * @param usPortNum
 	 * @param path
 	*/
     void sendFile(const std::string& strTo, unsigned short usPortNum, const std::string& path);
-    
+    void recvFile(const std::string& strTo, unsigned short usPortNum, const std::string& path);
 	
     // Other stuff
 	
