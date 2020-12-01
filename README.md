@@ -19,16 +19,27 @@ Run the following command
 make
 ``` 
 
-Once this is ran, use the following command
+### use 
+
+Once this is ran, use the following command on two seperate window
 
 ```
-./server 4545
-./client 127.0.0.1 4545 <File location>
+./UDP_FTP.out 4545
+./UDP_FTP.out localhost 4545
 ```
+
+
+After this is done we using the client to send the following:
+```
+command: put <file-path>
+```
+
+
 ## Task
 
 - [x] Get client connected to server
 - [x] Get Server working
 - [x] get images to transfer correctly
-- [] work on CLI component
-- [] Documentation
+- [x] work on CLI component
+- [x] Documentation
+- [x] Work statement

@@ -4,4 +4,3 @@
 make:
 	g++ ECE_UDPSocket.cpp main.cpp -lpthread -o UDP_FTP.out
 	xterm
-	xterm 
