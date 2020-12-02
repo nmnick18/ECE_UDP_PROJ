@@ -93,8 +93,9 @@ public:
 	 * @param msg
 	*/
     void sendMessage(const std::string& strTo, unsigned short usPortNum, const udpMessage& msg);
-	void recvMessage(const std::string& strTo, unsigned short usPortNum, const udpMessage& msg);
-    /**
+	
+	
+	/**
 	 * Sends and receive a udpFile containing file data to the specified port.
 	 *
 	 * @param strTo
@@ -102,8 +103,7 @@ public:
 	 * @param path
 	*/
     void sendFile(const std::string& strTo, unsigned short usPortNum, const std::string& path);
-    void recvFile(const std::string& strTo, unsigned short usPortNum, const std::string& path);
-	
+   
     // Other stuff
 	
 	/**

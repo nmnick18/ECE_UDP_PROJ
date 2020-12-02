@@ -104,11 +104,6 @@ void doClientInteractions(ECE_UDPSocket& activeSocket, string ipAddress, unsigne
             //may need to fix
 			activeSocket.sendFile(ipAddress, portNum, strings[1]);
 		}
-        else if (strings.size() > 1 && strings[0] == "get")
-		{
-            //may need to fix
-			activeSocket.recvFile(ipAddress, portNum, strings[1]);
-		}
 		else
 		{
 			cout << "Please enter a command: ";
