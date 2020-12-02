@@ -75,28 +75,6 @@ void receiveSocketMsgs(ECE_UDPSocket* pUDpSocket)
     } while (true);
 }
 
-void sendSocketMsgs(ECE_UDPSocket* pUDpSocket)
-{
-    // Loop that waits on incoming messages
-    udpMessage inMsg;
-
-    sockaddr_in from;
-    socklen_t fromlen{sizeof(struct sockaddr_in)};
-    int n;
-
-    do
-    {
-        n = sendto(pUDpSocket->m_sockfd, (char*)&inMsg, sizeof(udpMessage), 0, (struct sockaddr*)&from, fromlen);
-        if (n < 0)
-        {
-			pUDpSocket->error("ERROR writing from socket");
-            break;
-        }
-        pUDpSocket->processMessage(inMsg);
-        pUDpSocket->addSource(from);
-    } while (true);
-}
-
 /**
  * Class constructor
  *
@@ -449,7 +427,7 @@ void ECE_UDPSocket::recvFile(const std::string& strTo, unsigned short usPortNum,
     outMsg.nType = 2;   // EOF data is a udpMessage of nType 2
     recvMessage(strTo, usPortNum, outMsg);   // send remaining bytes
     
-    std::cout << getFileName(path) << " was transferred to " << strTo << std::endl;
+    std::cout << path << " was transferred to " << strTo << std::endl;
     std::cout << close(fd) << std::endl;
 
 };
